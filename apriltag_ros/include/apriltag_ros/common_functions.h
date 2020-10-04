@@ -182,6 +182,7 @@ class TagDetector
   bool publish_tf_;
   tf::TransformBroadcaster tf_pub_;
   std::string camera_tf_frame_;
+  double max_distance_;
 
  public:
 

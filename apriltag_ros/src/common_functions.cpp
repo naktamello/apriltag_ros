@@ -104,6 +104,12 @@ TagDetector::TagDetector(ros::NodeHandle pnh) :
     remove_duplicates_ = true;
   }
 
+  if(!pnh.getParam("tag_max_distance", max_distance_))
+  {
+    ROS_WARN("tag_max_distance parameter not provided. Disabling feature");
+    max_distance_ = 0.0;
+  }
+
   // Define the tag family whose tags should be searched for in the camera
   // images
   if (family_ == "tagStandard52h13")
@@ -341,6 +347,16 @@ AprilTagDetectionArray TagDetector::detectTags (
     geometry_msgs::PoseWithCovarianceStamped tag_pose =
         makeTagPose(transform, rot_quaternion, image->header);
 
+    if (max_distance_ > 0.0){
+      double square_distance =
+      tag_pose.pose.pose.position.x*tag_pose.pose.pose.position.x +
+      tag_pose.pose.pose.position.y*tag_pose.pose.pose.position.y +
+      tag_pose.pose.pose.position.z*tag_pose.pose.pose.position.z;
+      if (square_distance > max_distance_*max_distance_){
+        ROS_DEBUG_STREAM("tag is too far away, skipping");
+        continue;
+      }
+    }
     // Add the detection to the back of the tag detection array
     AprilTagDetection tag_detection;
     tag_detection.pose = tag_pose;
